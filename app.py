@@ -278,10 +278,10 @@ def main() -> None:
 
         st.markdown(
             """
-            1. Upload a complaint dataset with the required classroom columns.
-            2. Upload the taxonomy workbook with all required sheets.
-            3. Write or refine the classification prompt.
-            4. Run the 5-record test sample to debug the prompt.
+            1. Upload the complaint dataset provided by your instructor. 
+            2. Upload your completed taxonomy workbook with all required sheets.
+            3. Include your classification prompt.
+            4. Run the 5-record test sample to debug your prompt and taxonomy.
             5. Run the full dataset and export the classified output.
             """
         )
