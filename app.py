@@ -400,7 +400,7 @@ def main() -> None:
     with tabs[3]:
         render_section_intro(
             "Classification Prompt",
-            "Students can shape the classification logic here. The app will still wrap this prompt inside stronger backend instructions so the output stays structured and parseable.",
+            "Enter your prompt here.",
         )
 
         updated_prompt = st.text_area(
