@@ -173,6 +173,33 @@ def render_results_dashboard(results_df: pd.DataFrame) -> None:
         )
 
 
+def create_run_progress_ui() -> tuple[Any, Any, Any]:
+    running_message = st.empty()
+    progress_placeholder = st.empty()
+    progress_bar = st.progress(0)
+
+    running_message.warning("Classification running. Do not close the app.")
+    progress_bar.progress(0.08)
+    progress_placeholder.info("Starting classification...")
+
+    return running_message, progress_placeholder, progress_bar
+
+
+def update_run_progress(
+    payload: dict[str, Any],
+    progress_bar: Any,
+    progress_placeholder: Any,
+) -> None:
+    batch_fraction = payload["batch_number"] / max(payload["total_batches"], 1)
+    visual_fraction = 0.08 + (0.92 * batch_fraction)
+    progress_bar.progress(min(visual_fraction, 1.0))
+    progress_placeholder.info(
+        f"Processed batch {payload['batch_number']} of {payload['total_batches']} | "
+        f"rows completed: {payload['completed_rows']} | "
+        f"failed: {payload['failed_rows']} | partial: {payload['partial_rows']}"
+    )
+
+
 def main() -> None:
     ensure_session_defaults()
     apply_styles()
@@ -430,7 +457,10 @@ def main() -> None:
         if not prerequisites_ready:
             st.warning("Complete the API key, dataset, taxonomy, and prompt steps before running the test sample.")
         else:
-            if st.button("Run test sample", use_container_width=True):
+            action_col, _ = st.columns([1, 2])
+            with action_col:
+                run_test = st.button("Run test sample", use_container_width=True)
+            if run_test:
                 sample_df = (
                     st.session_state["dataset_result"]
                     .dataframe.sample(
@@ -440,17 +470,7 @@ def main() -> None:
                     .reset_index(drop=True)
                 )
 
-                progress_placeholder = st.empty()
-                progress_bar = st.progress(0)
-
-                def update_progress(payload: dict[str, Any]) -> None:
-                    fraction = payload["batch_number"] / max(payload["total_batches"], 1)
-                    progress_bar.progress(min(fraction, 1.0))
-                    progress_placeholder.info(
-                        f"Processed batch {payload['batch_number']} of {payload['total_batches']} | "
-                        f"rows completed: {payload['completed_rows']} | "
-                        f"failed: {payload['failed_rows']} | partial: {payload['partial_rows']}"
-                    )
+                running_message, progress_placeholder, progress_bar = create_run_progress_ui()
 
                 run_result = classify_complaints(
                     dataframe=sample_df,
@@ -460,8 +480,14 @@ def main() -> None:
                     model_name=selected_model,
                     batch_size=DEFAULT_BATCH_SIZE,
                     max_retries=DEFAULT_MAX_RETRIES,
-                    progress_callback=update_progress,
+                    progress_callback=lambda payload: update_run_progress(
+                        payload,
+                        progress_bar,
+                        progress_placeholder,
+                    ),
                 )
+                progress_bar.progress(1.0)
+                running_message.empty()
                 st.session_state["test_run_result"] = run_result
                 st.session_state["test_run_signature"] = current_signature
 
@@ -495,18 +521,11 @@ def main() -> None:
             st.caption(
                 f"This run will process {len(st.session_state['dataset_result'].dataframe)} complaints in batches of {DEFAULT_BATCH_SIZE}."
             )
-            if st.button("Run full classification", use_container_width=True):
-                progress_placeholder = st.empty()
-                progress_bar = st.progress(0)
-
-                def update_progress(payload: dict[str, Any]) -> None:
-                    fraction = payload["batch_number"] / max(payload["total_batches"], 1)
-                    progress_bar.progress(min(fraction, 1.0))
-                    progress_placeholder.info(
-                        f"Processed batch {payload['batch_number']} of {payload['total_batches']} | "
-                        f"rows completed: {payload['completed_rows']} | "
-                        f"failed: {payload['failed_rows']} | partial: {payload['partial_rows']}"
-                    )
+            action_col, _ = st.columns([1, 2])
+            with action_col:
+                run_full = st.button("Run full classification", use_container_width=True)
+            if run_full:
+                running_message, progress_placeholder, progress_bar = create_run_progress_ui()
 
                 run_result = classify_complaints(
                     dataframe=st.session_state["dataset_result"].dataframe,
@@ -516,8 +535,14 @@ def main() -> None:
                     model_name=selected_model,
                     batch_size=DEFAULT_BATCH_SIZE,
                     max_retries=DEFAULT_MAX_RETRIES,
-                    progress_callback=update_progress,
+                    progress_callback=lambda payload: update_run_progress(
+                        payload,
+                        progress_bar,
+                        progress_placeholder,
+                    ),
                 )
+                progress_bar.progress(1.0)
+                running_message.empty()
                 st.session_state["full_run_result"] = run_result
                 st.session_state["full_run_signature"] = current_signature
 
