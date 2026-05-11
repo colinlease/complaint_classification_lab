@@ -217,7 +217,7 @@ def main() -> None:
     )
 
     with st.sidebar:
-        st.markdown("## Run Setup")
+        st.markdown("## Setup")
         typed_api_key = st.text_input(
             "OpenAI API key",
             type="password",
