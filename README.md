@@ -63,7 +63,6 @@ The uploaded taxonomy workbook must be an Excel file with all of these sheets:
 - `Root_Causes`
 - `Severity_Rules`
 - `Escalation_Rules`
-- `Prompt_Instructions`
 
 ### Required columns by sheet
 
@@ -92,11 +91,6 @@ The uploaded taxonomy workbook must be an Excel file with all of these sheets:
 - `escalation_flag`
 - `definition`
 - `examples`
-
-`Prompt_Instructions`
-
-- `instruction_type`
-- `instruction`
 
 ## API key handling
 
