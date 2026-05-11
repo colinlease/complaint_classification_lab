@@ -5,7 +5,6 @@ AI Complaint Classification Lab is a Streamlit classroom app for MBA students. S
 This V1 app is intentionally scoped for classroom use:
 
 - OpenAI only
-- No instructor answer-key upload
 - No scoring workflow
 - No user accounts
 - No database
